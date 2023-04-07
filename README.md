@@ -6,20 +6,6 @@ The Filament module package is a Laravel package that integrates with the popula
 
 Filament module package simplifies the process of integrating Filament into your Laravel application by providing a set of pre-built modules that can be easily installed and configured.
 
-- Features include:
-
-  - Coming on the way....
-
-- Latest versions of PHP and PHPUnit and PHPCsFixer
-
-- Best practices applied:
-  - [`README.md`][link-readme]
-  - [`LICENSE`][link-license]
-  - [`composer.json`][link-composer-json]
-  - [`phpunit.xml`][link-phpunit]
-  - [`.gitignore`][link-gitignore]
-  - [`.php-cs-fixer.php`][link-phpcsfixer]
-
 ## Installation
 
 Require this package with composer.
