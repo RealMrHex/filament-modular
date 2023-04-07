@@ -8,7 +8,7 @@ class ModuleMakeHasManyCommand extends ModuleMakeRelationManagerCommand
 
     public function option($key = null)
     {
-        if ($key === 'associate') {
+        if ('associate' === $key) {
             return true;
         }
 

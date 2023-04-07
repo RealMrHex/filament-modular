@@ -8,7 +8,7 @@ class ModuleMakeMorphToManyCommand extends ModuleMakeRelationManagerCommand
 
     public function option($key = null)
     {
-        if ($key === 'attach') {
+        if ('attach' === $key) {
             return true;
         }
 

@@ -1,7 +1,6 @@
 <?php
 
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Pages
@@ -15,7 +14,7 @@ return [
 
     'pages' => [
         'namespace' => '\\Pages',
-        'path'      => '/Pages',
+        'path' => '/Pages',
     ],
 
     /*
@@ -31,7 +30,7 @@ return [
 
     'resources' => [
         'namespace' => '\\Resources',
-        'path'      => '/Resources',
+        'path' => '/Resources',
     ],
 
     /*
@@ -47,7 +46,7 @@ return [
 
     'widgets' => [
         'namespace' => '\\Widgets',
-        'path'      => '/Widgets',
+        'path' => '/Widgets',
     ],
 
     /*
@@ -71,7 +70,7 @@ return [
 
     'livewire' => [
         'namespace' => '\\Admin',
-        'path'      => '/Admin',
+        'path' => '/Admin',
     ],
 
     /*
@@ -109,7 +108,7 @@ return [
 
     'views' => [
         'in_module' => true,
-        'path'      => null,
+        'path' => null,
         'namespace' => null,
     ],
 ];
