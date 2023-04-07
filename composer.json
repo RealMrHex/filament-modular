@@ -12,6 +12,10 @@
         {
             "name": "Armin Hooshmand",
             "email": "RealMrHex@gmail.com"
+        },
+        {
+            "name": "Hessam Taghvaei",
+            "email": "mohaphez@gmail.com"
         }
     ],
     "minimum-stability": "dev",
