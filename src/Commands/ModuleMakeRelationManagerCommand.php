@@ -7,12 +7,13 @@ use Filament\Support\Commands\Concerns\CanManipulateFiles;
 use Filament\Support\Commands\Concerns\CanValidateInput;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
-use Nwidart\Modules\Laravel\Module;
 use Nwidart\Modules\Traits\ModuleCommandTrait;
+use RealMrHex\FilamentModular\Commands\Concerns\CommandSetup;
 use RealMrHex\FilamentModular\Commands\Concerns\InteractsWithFileNames;
 
 class ModuleMakeRelationManagerCommand extends Command
 {
+    use CommandSetup;
     use CanIndentStrings;
     use CanManipulateFiles;
     use CanValidateInput;
@@ -25,51 +26,11 @@ class ModuleMakeRelationManagerCommand extends Command
 
     public function handle(): int
     {
-        $module_name = $this->ensureArg('module', 'Module Name (e.g. `User`)');
-        $module_name = Str::of($module_name)->studly()->toString();
-        $module = null;
+        $this->init();
 
-        $base = config('filament-modular.livewire.path');
-
-        try {
-            /**
-             * @var Module $module
-             */
-            $module = app('modules')->findOrFail($module_name);
-        } catch (Throwable $exception) {
-            $this->error('module not found');
-
-            return static::INVALID;
-        }
-
-        $_directory_format = '%s/'.Str::replaceFirst('/', '', config('filament-modular.livewire.path'));
-        $_namespace_format = '%s\\%s\\'.Str::replaceFirst('\\', '', config('filament-modular.livewire.namespace'));
-        $_module_namespace = config('filament-modular.modules.namespace');
-
-        $module_path = $module->getPath();
-        $module_name = $module->getName();
-
-        $module_directory = sprintf($_directory_format, $module_path);
-        $module_namespace = sprintf($_namespace_format, $_module_namespace, $module_name);
-
-        $_widgets_format = '%s/'.Str::replaceFirst('/', '', config('filament-modular.widgets.path'));
-        $_resources_format = '%s/'.Str::replaceFirst('/', '', config('filament-modular.resources.path'));
-        $_pages_format = '%s/'.Str::replaceFirst('/', '', config('filament-modular.pages.path'));
-
-        $widgets_path = sprintf($_widgets_format, $module_directory);
-        $resources_path = sprintf($_resources_format, $module_directory);
-        $pages_path = sprintf($_pages_format, $module_directory);
-
-        $_widgets_namespace_format = '%s\\'.Str::replaceFirst('\\', '', config('filament-modular.widgets.namespace'));
-        $_resources_namespace_format = '%s\\'.Str::replaceFirst('\\', '', config('filament-modular.resources.namespace'));
-        $_pages_namespace_format = '%s\\'.Str::replaceFirst('\\', '', config('filament-modular.pages.namespace'));
-
-        $widgets_namespace = sprintf($_widgets_namespace_format, $module_namespace);
-        $resources_namespace = sprintf($_resources_namespace_format, $module_namespace);
-        $pages_namespace = sprintf($_pages_namespace_format, $module_namespace);
-
-        $path = $resources_path;
-        $namespace = $resources_namespace;
+        $path = $this->resources_path;
+        $resourceNamespace = $this->resources_namespace;
+        $resourcePath = $path;
 
         $resource = (string) Str::of($this->argument('resource') ?? $this->askRequired('Resource (e.g. `DepartmentResource`)', 'resource'))
             ->studly()
@@ -96,9 +57,11 @@ class ModuleMakeRelationManagerCommand extends Command
             ->replace('\\', '/')
             ->append('.php');
 
-        if (!$this->option('force') && $this->checkForCollision([
-            $path,
-        ])) {
+        if (
+            !$this->option('force') && $this->checkForCollision([
+                $path,
+            ])
+        ) {
             return static::INVALID;
         }
 
