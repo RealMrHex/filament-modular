@@ -1,0 +1,29 @@
+{
+    "name": "realmrhex/filament-modular",
+    "description": "Modular support for filament.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "RealMrHex\\FilamentModular\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Armin Hooshmand",
+            "email": "RealMrHex@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "filament/filament": "^2.0",
+        "nwidart/laravel-modules": ">=9"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "RealMrHex\\FilamentModular\\FilamentModularServiceProvider"
+            ]
+        }
+    }
+}
