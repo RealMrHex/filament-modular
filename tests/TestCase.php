@@ -7,17 +7,17 @@ use RealMrHex\FilamentModular\FilamentModularServiceProvider;
 
 class TestCase extends \Orchestra\Testbench\TestCase
 {
-	use RefreshDatabase;
+    use RefreshDatabase;
 
-	public function setUp(): void
-	{
-		parent::setUp();
-	}
+    public function setUp(): void
+    {
+        parent::setUp();
+    }
 
-	protected function getPackageProviders($app)
-	{
-		return [
-			FilamentModularServiceProvider::class,
-		];
-	}
+    protected function getPackageProviders($app)
+    {
+        return [
+            FilamentModularServiceProvider::class,
+        ];
+    }
 }
