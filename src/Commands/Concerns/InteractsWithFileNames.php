@@ -16,8 +16,6 @@ trait InteractsWithFileNames
 
     /**
      * Ensure option.
-     *
-     * @return ?string
      */
     private function ensureOption(string $option, string $ask): ?string
     {
