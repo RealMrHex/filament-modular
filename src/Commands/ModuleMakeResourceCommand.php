@@ -13,7 +13,6 @@ use Illuminate\Support\Str;
 use Nwidart\Modules\Laravel\Module;
 use Nwidart\Modules\Traits\ModuleCommandTrait;
 use RealMrHex\FilamentModular\Commands\Concerns\InteractsWithFileNames;
-use Throwable;
 
 class ModuleMakeResourceCommand extends Command
 {
@@ -38,21 +37,19 @@ class ModuleMakeResourceCommand extends Command
 
         $base = config('filament-modular.livewire.path');
 
-        try
-        {
+        try {
             /**
              * @var Module $module
              */
             $module = app('modules')->findOrFail($module_name);
-        }
-        catch (Throwable $exception)
-        {
+        } catch (\Throwable $exception) {
             $this->error('module not found');
+
             return static::INVALID;
         }
 
-        $_directory_format = '%s/' . Str::replaceFirst('/', '', config('filament-modular.livewire.path'));
-        $_namespace_format = '%s\\%s\\' . Str::replaceFirst('\\', '', config('filament-modular.livewire.namespace'));
+        $_directory_format = '%s/'.Str::replaceFirst('/', '', config('filament-modular.livewire.path'));
+        $_namespace_format = '%s\\%s\\'.Str::replaceFirst('\\', '', config('filament-modular.livewire.namespace'));
         $_module_namespace = config('filament-modular.modules.namespace');
 
         $module_path = $module->getPath();
@@ -61,17 +58,17 @@ class ModuleMakeResourceCommand extends Command
         $module_directory = sprintf($_directory_format, $module_path);
         $module_namespace = sprintf($_namespace_format, $_module_namespace, $module_name);
 
-        $_widgets_format = '%s/' . Str::replaceFirst('/', '', config('filament-modular.widgets.path'));
-        $_resources_format = '%s/' . Str::replaceFirst('/', '', config('filament-modular.resources.path'));
-        $_pages_format = '%s/' . Str::replaceFirst('/', '', config('filament-modular.pages.path'));
+        $_widgets_format = '%s/'.Str::replaceFirst('/', '', config('filament-modular.widgets.path'));
+        $_resources_format = '%s/'.Str::replaceFirst('/', '', config('filament-modular.resources.path'));
+        $_pages_format = '%s/'.Str::replaceFirst('/', '', config('filament-modular.pages.path'));
 
         $widgets_path = sprintf($_widgets_format, $module_directory);
         $resources_path = sprintf($_resources_format, $module_directory);
         $pages_path = sprintf($_pages_format, $module_directory);
 
-        $_widgets_namespace_format = '%s\\' . Str::replaceFirst('\\', '', config('filament-modular.widgets.namespace'));
-        $_resources_namespace_format = '%s\\' . Str::replaceFirst('\\', '', config('filament-modular.resources.namespace'));
-        $_pages_namespace_format = '%s\\' . Str::replaceFirst('\\', '', config('filament-modular.pages.namespace'));
+        $_widgets_namespace_format = '%s\\'.Str::replaceFirst('\\', '', config('filament-modular.widgets.namespace'));
+        $_resources_namespace_format = '%s\\'.Str::replaceFirst('\\', '', config('filament-modular.resources.namespace'));
+        $_pages_namespace_format = '%s\\'.Str::replaceFirst('\\', '', config('filament-modular.pages.namespace'));
 
         $widgets_namespace = sprintf($_widgets_namespace_format, $module_namespace);
         $resources_namespace = sprintf($_resources_namespace_format, $module_namespace);
@@ -102,7 +99,7 @@ class ModuleMakeResourceCommand extends Command
         $resource = "{$model}Resource";
         $resourceClass = "{$modelClass}Resource";
         $resourceNamespace = $modelNamespace;
-        $namespace .= $resourceNamespace !== '' ? "\\{$resourceNamespace}" : '';
+        $namespace .= '' !== $resourceNamespace ? "\\{$resourceNamespace}" : '';
         $listResourcePageClass = "List{$pluralModelClass}";
         $manageResourcePageClass = "Manage{$pluralModelClass}";
         $createResourcePageClass = "Create{$modelClass}";
@@ -124,7 +121,7 @@ class ModuleMakeResourceCommand extends Command
         $editResourcePagePath = "{$resourcePagesDirectory}/{$editResourcePageClass}.php";
         $viewResourcePagePath = "{$resourcePagesDirectory}/{$viewResourcePageClass}.php";
 
-        if (! $this->option('force') && $this->checkForCollision([
+        if (!$this->option('force') && $this->checkForCollision([
             $resourcePath,
             $listResourcePagePath,
             $manageResourcePagePath,
@@ -136,16 +133,16 @@ class ModuleMakeResourceCommand extends Command
         }
 
         $pages = '';
-        $pages .= '\'index\' => Pages\\' . ($this->option('simple') ? $manageResourcePageClass : $listResourcePageClass) . '::route(\'/\'),';
+        $pages .= '\'index\' => Pages\\'.($this->option('simple') ? $manageResourcePageClass : $listResourcePageClass).'::route(\'/\'),';
 
-        if (! $this->option('simple')) {
-            $pages .= PHP_EOL . "'create' => Pages\\{$createResourcePageClass}::route('/create'),";
+        if (!$this->option('simple')) {
+            $pages .= PHP_EOL."'create' => Pages\\{$createResourcePageClass}::route('/create'),";
 
             if ($this->option('view')) {
-                $pages .= PHP_EOL . "'view' => Pages\\{$viewResourcePageClass}::route('/{record}'),";
+                $pages .= PHP_EOL."'view' => Pages\\{$viewResourcePageClass}::route('/{record}'),";
             }
 
-            $pages .= PHP_EOL . "'edit' => Pages\\{$editResourcePageClass}::route('/{record}/edit'),";
+            $pages .= PHP_EOL."'edit' => Pages\\{$editResourcePageClass}::route('/{record}/edit'),";
         }
 
         $tableActions = [];
@@ -166,12 +163,12 @@ class ModuleMakeResourceCommand extends Command
                 $tableActions[] = 'Tables\Actions\RestoreAction::make(),';
             }
         } else {
-            $relations .= PHP_EOL . 'public static function getRelations(): array';
-            $relations .= PHP_EOL . '{';
-            $relations .= PHP_EOL . '    return [';
-            $relations .= PHP_EOL . '        //';
-            $relations .= PHP_EOL . '    ];';
-            $relations .= PHP_EOL . '}' . PHP_EOL;
+            $relations .= PHP_EOL.'public static function getRelations(): array';
+            $relations .= PHP_EOL.'{';
+            $relations .= PHP_EOL.'    return [';
+            $relations .= PHP_EOL.'        //';
+            $relations .= PHP_EOL.'    ];';
+            $relations .= PHP_EOL.'}'.PHP_EOL;
         }
 
         $tableActions = implode(PHP_EOL, $tableActions);
@@ -186,13 +183,13 @@ class ModuleMakeResourceCommand extends Command
             $tableBulkActions[] = 'Tables\Actions\ForceDeleteBulkAction::make(),';
             $tableBulkActions[] = 'Tables\Actions\RestoreBulkAction::make(),';
 
-            $eloquentQuery .= PHP_EOL . PHP_EOL . 'public static function getEloquentQuery(): Builder';
-            $eloquentQuery .= PHP_EOL . '{';
-            $eloquentQuery .= PHP_EOL . '    return parent::getEloquentQuery()';
-            $eloquentQuery .= PHP_EOL . '        ->withoutGlobalScopes([';
-            $eloquentQuery .= PHP_EOL . '            SoftDeletingScope::class,';
-            $eloquentQuery .= PHP_EOL . '        ]);';
-            $eloquentQuery .= PHP_EOL . '}';
+            $eloquentQuery .= PHP_EOL.PHP_EOL.'public static function getEloquentQuery(): Builder';
+            $eloquentQuery .= PHP_EOL.'{';
+            $eloquentQuery .= PHP_EOL.'    return parent::getEloquentQuery()';
+            $eloquentQuery .= PHP_EOL.'        ->withoutGlobalScopes([';
+            $eloquentQuery .= PHP_EOL.'            SoftDeletingScope::class,';
+            $eloquentQuery .= PHP_EOL.'        ]);';
+            $eloquentQuery .= PHP_EOL.'}';
         }
 
         $tableBulkActions = implode(PHP_EOL, $tableBulkActions);
@@ -200,10 +197,10 @@ class ModuleMakeResourceCommand extends Command
         $this->copyStubToApp('Resource', $resourcePath, [
             'eloquentQuery' => $this->indentString($eloquentQuery, 1),
             'formSchema' => $this->indentString($this->option('generate') ? $this->getResourceFormSchema(
-                'App\\Models' . ($modelNamespace !== '' ? "\\{$modelNamespace}" : '') . '\\' . $modelClass,
+                'App\\Models'.('' !== $modelNamespace ? "\\{$modelNamespace}" : '').'\\'.$modelClass,
             ) : '//', 4),
-            'model' => $model === 'Resource' ? 'Resource as ResourceModel' : $model,
-            'modelClass' => $model === 'Resource' ? 'ResourceModel' : $modelClass,
+            'model' => 'Resource' === $model ? 'Resource as ResourceModel' : $model,
+            'modelClass' => 'Resource' === $model ? 'ResourceModel' : $modelClass,
             'namespace' => $namespace,
             'pages' => $this->indentString($pages, 3),
             'relations' => $this->indentString($relations, 1),
@@ -212,7 +209,7 @@ class ModuleMakeResourceCommand extends Command
             'tableActions' => $this->indentString($tableActions, 4),
             'tableBulkActions' => $this->indentString($tableBulkActions, 4),
             'tableColumns' => $this->indentString($this->option('generate') ? $this->getResourceTableColumns(
-                'App\Models' . ($modelNamespace !== '' ? "\\{$modelNamespace}" : '') . '\\' . $modelClass,
+                'App\Models'.('' !== $modelNamespace ? "\\{$modelNamespace}" : '').'\\'.$modelClass,
             ) : '//', 4),
             'tableFilters' => $this->indentString(
                 $this->option('soft-deletes') ? 'Tables\Filters\TrashedFilter::make(),' : '//',

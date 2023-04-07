@@ -7,12 +7,7 @@ use Illuminate\Support\Str;
 trait InteractsWithFileNames
 {
     /**
-     * Ensure arg entered
-     *
-     * @param string $arg
-     * @param string $ask
-     *
-     * @return string
+     * Ensure arg entered.
      */
     private function ensureArg(string $arg, string $ask): string
     {
@@ -20,10 +15,7 @@ trait InteractsWithFileNames
     }
 
     /**
-     * Ensure option
-     *
-     * @param string $option
-     * @param string $ask
+     * Ensure option.
      *
      * @return ?string
      */
@@ -33,11 +25,7 @@ trait InteractsWithFileNames
     }
 
     /**
-     * Simplify String
-     *
-     * @param string $string
-     *
-     * @return string
+     * Simplify String.
      */
     private function simplifyStr(string $string): string
     {
@@ -50,11 +38,7 @@ trait InteractsWithFileNames
     }
 
     /**
-     * Simplify resource name
-     *
-     * @param string $string
-     *
-     * @return string
+     * Simplify resource name.
      */
     private function simplifyResource(string $string): string
     {
@@ -70,11 +54,7 @@ trait InteractsWithFileNames
     }
 
     /**
-     * Get class name from string
-     *
-     * @param string $string
-     *
-     * @return string
+     * Get class name from string.
      */
     private function classFromStr(string $string): string
     {
@@ -82,11 +62,7 @@ trait InteractsWithFileNames
     }
 
     /**
-     * Get namespace from string
-     *
-     * @param string $string
-     *
-     * @return string
+     * Get namespace from string.
      */
     private function namespaceFromStr(string $string): string
     {

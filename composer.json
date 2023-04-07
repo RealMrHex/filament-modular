@@ -16,6 +16,7 @@
     ],
     "minimum-stability": "dev",
     "require": {
+        "php": "^8.1",
         "filament/filament": "^2.0",
         "nwidart/laravel-modules": ">=9"
     },
@@ -25,5 +26,10 @@
                 "RealMrHex\\FilamentModular\\FilamentModularServiceProvider"
             ]
         }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.1@dev",
+        "friendsofphp/php-cs-fixer": "dev-master",
+        "orchestra/testbench": "dev-develop"
     }
 }
