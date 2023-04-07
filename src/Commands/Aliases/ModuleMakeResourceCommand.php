@@ -8,5 +8,5 @@ class ModuleMakeResourceCommand extends Commands\ModuleMakeResourceCommand
 {
     protected $hidden = true;
 
-    protected $signature = 'filament:module-resource {name?} {module?} {module?} {--soft-deletes} {--view} {--G|generate} {--S|simple} {--F|force}';
+    protected $signature = 'filament:module-resource {name?} {module?} {--soft-deletes} {--view} {--G|generate} {--S|simple} {--F|force}';
 }
