@@ -1,26 +1,13 @@
-# Laravel Filament Modular
+![Cover](https://filament.ams3.digitaloceanspaces.com/521/tFyehKIVV346TS3Emhqj5vhGYbFGbW-metaVW50aXRsZWQtMS0wMS5qcGc=-.jpg)
 
 ## Introduction
 
 The Filament module package is a Laravel package that integrates with the popular nwidart/laravel-modules package to provide seamless integration with Filament, a modern and elegant admin panel for Laravel applications.
 
-Filament module package simplifies the process of integrating Filament into your Laravel application by providing a set of pre-built modules that can be easily installed and configured.
+### Read Full Doc
+https://filamentphp.com/plugins/realmrhex-modular
 
-- Features include:
-
-  - Coming on the way....
-
-- Latest versions of PHP and PHPUnit and PHPCsFixer
-
-- Best practices applied:
-  - [`README.md`][link-readme]
-  - [`LICENSE`][link-license]
-  - [`composer.json`][link-composer-json]
-  - [`phpunit.xml`][link-phpunit]
-  - [`.gitignore`][link-gitignore]
-  - [`.php-cs-fixer.php`][link-phpcsfixer]
-
-## Installation
+### Installation
 
 Require this package with composer.
 
