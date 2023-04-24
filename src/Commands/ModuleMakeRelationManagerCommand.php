@@ -91,6 +91,8 @@ class ModuleMakeRelationManagerCommand extends Command
         $recordTitleAttribute = (string) Str::of($this->argument('recordTitleAttribute') ?? $this->askRequired('Title attribute (e.g. `name`)', 'title attribute'))
             ->trim(' ');
 
+        $resourcePath = $resources_path;
+
         $path = (string) Str::of($managerClass)
             ->prepend("{$resourcePath}/{$resource}/RelationManagers/")
             ->replace('\\', '/')
@@ -172,7 +174,7 @@ class ModuleMakeRelationManagerCommand extends Command
 
         $this->copyStubToApp('RelationManager', $path, [
             'eloquentQuery' => $this->indentString($eloquentQuery, 1),
-            'namespace' => "{$resourceNamespace}\\{$resource}\\RelationManagers",
+            'namespace' => "{$resources_namespace}\\{$resource}\\RelationManagers",
             'managerClass' => $managerClass,
             'recordTitleAttribute' => $recordTitleAttribute,
             'relationship' => $relationship,
