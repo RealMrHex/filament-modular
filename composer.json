@@ -21,7 +21,7 @@
     "minimum-stability": "dev",
     "require": {
         "php": "^8.1",
-        "filament/filament": "^2.0",
+        "filament/filament": "^3.0",
         "nwidart/laravel-modules": ">=9"
     },
     "extra": {

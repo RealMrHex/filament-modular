@@ -4,6 +4,7 @@ namespace {{ namespace }};
 
 use Closure;
 use Filament\Tables;
+use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Illuminate\Database\Eloquent\Builder;
 
