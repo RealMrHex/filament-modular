@@ -7,75 +7,95 @@ use Filament\PluginServiceProvider as ServiceProvider;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Resources\Resource;
 use Filament\Widgets\Widget;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Filesystem\Filesystem;
-use Illuminate\Support\Str;
+use Illuminate\Support\{Str, Stringable};
 use Livewire\Component;
 use Nwidart\Modules\Laravel\Module;
-use RealMrHex\FilamentModular\Commands\ModuleMakeBelongsToManyCommand;
-use RealMrHex\FilamentModular\Commands\ModuleMakeHasManyCommand;
-use RealMrHex\FilamentModular\Commands\ModuleMakeHasManyThroughCommand;
-use RealMrHex\FilamentModular\Commands\ModuleMakeMorphManyCommand;
-use RealMrHex\FilamentModular\Commands\ModuleMakeMorphToManyCommand;
-use RealMrHex\FilamentModular\Commands\ModuleMakePageCommand;
-use RealMrHex\FilamentModular\Commands\ModuleMakeRelationManagerCommand;
-use RealMrHex\FilamentModular\Commands\ModuleMakeResourceCommand;
-use RealMrHex\FilamentModular\Commands\ModuleMakeWidgetCommand;
+use RealMrHex\FilamentModular\Commands\{
+    ModuleMakeBelongsToManyCommand,
+    ModuleMakeHasManyCommand,
+    ModuleMakeHasManyThroughCommand,
+    ModuleMakeMorphManyCommand,
+    ModuleMakeMorphToManyCommand,
+    ModuleMakePageCommand,
+    ModuleMakeRelationManagerCommand,
+    ModuleMakeResourceCommand,
+    ModuleMakeWidgetCommand
+};
+use ReflectionClass;
+use ReflectionException;
 use Spatie\LaravelPackageTools\Package;
 
 class FilamentModularServiceProvider extends ServiceProvider
 {
+    protected array $pathFormats = [];
+    protected array $moduleConfig = [];
+
     /**
      * Configure package services.
      */
     public function configurePackage(Package $package): void
     {
+        $this->initializeConfigurations();
+
         $package
             ->name('filament-modular')
             ->hasConfigFile()
             ->hasCommands($this->getCommands());
 
-        $this->app->booting(fn () => $this->initModules());
-        $this->loadViews();
+        $this->app->booting(fn () => $this->initializeModules());
     }
 
     /**
-     * Get modular commands.
-     *
-     * @return string[]
+     * Initialize package configurations.
+     */
+    protected function initializeConfigurations(): void
+    {
+        $this->pathFormats = [
+            'livewire' => '%s/'.ltrim(config('filament-modular.livewire.path'), '/'),
+            'widgets' => '%s/'.ltrim(config('filament-modular.widgets.path'), '/'),
+            'resources' => '%s/'.ltrim(config('filament-modular.resources.path'), '/'),
+            'pages' => '%s/'.ltrim(config('filament-modular.pages.path'), '/'),
+        ];
+
+        $this->moduleConfig = [
+            'namespace' => config('filament-modular.modules.namespace'),
+            'livewire_namespace' => ltrim(config('filament-modular.livewire.namespace'), '\\'),
+        ];
+
+        $this->loadViewsFrom(
+            config('filament-modular.views.path'),
+            config('filament-modular.views.namespace')
+        );
+    }
+
+    /**
+     * Get all modular commands including aliases.
      */
     protected function getCommands(): array
     {
-        $commands = $this->getMakeCommands();
-
-        $aliases = [];
-
-        foreach ($commands as $command) {
-            $class = 'RealMrHex\\FilamentModular\\Commands\\Aliases\\'.class_basename($command);
-
-            if (class_exists($class)) {
-                $aliases[] = $class;
-            }
-        }
-
-        return array_merge($commands, $aliases);
+        return array_merge(
+            $this->getMakeCommands(),
+            $this->generateCommandAliases()
+        );
     }
 
     /**
-     * Load Views.
+     * Generate command aliases dynamically.
      */
-    private function loadViews(): void
+    protected function generateCommandAliases(): array
     {
-        $path = config('filament-modular.views.path');
-        $namespace = config('filament-modular.views.namespace');
-        $this->loadViewsFrom($path, $namespace);
+        return collect($this->getMakeCommands())
+            ->map(fn ($command) => 'RealMrHex\\FilamentModular\\Commands\\Aliases\\'.class_basename($command))
+            ->filter(fn ($alias) => class_exists($alias))
+            ->toArray();
     }
 
     /**
-     * Get make:x commands.
-     *
-     * @return string[]
+     * Get all make commands.
      */
-    private function getMakeCommands(): array
+    protected function getMakeCommands(): array
     {
         return [
             ModuleMakeBelongsToManyCommand::class,
@@ -91,112 +111,147 @@ class FilamentModularServiceProvider extends ServiceProvider
     }
 
     /**
-     * Fetch all active modules and initialize them.
+     * Initialize all enabled modules.
      */
-    private function initModules(): void
+    protected function initializeModules(): void
     {
-        /**
-         * List of all enabled modules.
-         *
-         * @var Module[] $modules
-         */
-        $modules = $this->app['modules']->allEnabled();
+        collect($this->app['modules']->allEnabled())
+            ->each(fn (Module $module) => $this->scanModule($module));
+    }
 
-        foreach ($modules as $module) {
-            $this->scanModule($module);
+    /**
+     * Scan a module for Filament components.
+     *
+     * @throws FileNotFoundException|ReflectionException
+     */
+    protected function scanModule(Module $module): void
+    {
+        $filesystem = app(Filesystem::class);
+        $modulePath = $module->getPath();
+        $moduleName = $module->getName();
+
+        $moduleDirectory = sprintf($this->pathFormats['livewire'], $modulePath);
+        $moduleNamespace = sprintf(
+            '%s\\%s\\%s',
+            $this->moduleConfig['namespace'],
+            $moduleName,
+            $this->moduleConfig['livewire_namespace']
+        );
+
+        if (!$filesystem->isDirectory($moduleDirectory)) {
+            return;
+        }
+
+        $this->processModuleFiles($filesystem, $moduleDirectory, $moduleNamespace);
+    }
+
+    /**
+     * Process all files in a module directory.
+     */
+    protected function processModuleFiles(
+        Filesystem $filesystem,
+        string $moduleDirectory,
+        string $moduleNamespace
+    ): void {
+        foreach ($filesystem->allFiles($moduleDirectory) as $file) {
+            $fileClass = $this->generateFileClass($file, $moduleNamespace);
+
+            if (!$this->isValidClass($fileClass)) {
+                continue;
+            }
+
+            $this->registerComponent($fileClass, $file->getPathname(), $moduleDirectory);
         }
     }
 
     /**
-     * Scan current module for finding pages, widgets, resources, etc.
+     * Generate fully qualified class name from file.
      */
-    private function scanModule(Module $module): void
+    protected function generateFileClass(SplFileInfo $file, string $moduleNamespace): string
     {
-        /**
-         * Filesystem instance.
-         *
-         * @var Filesystem $filesystem
-         */
-        $filesystem = resolve(Filesystem::class);
+        return (string) Str::of($moduleNamespace)
+            ->append('\\', $file->getRelativePathname())
+            ->replace(['/', '.php'], ['\\', '']);
+    }
 
-        $_directory_format = '%s/'.Str::replaceFirst('/', '', config('filament-modular.livewire.path'));
-        $_namespace_format = '%s\\%s\\'.Str::replaceFirst('\\', '', config('filament-modular.livewire.namespace'));
-        $_module_namespace = config('filament-modular.modules.namespace');
-
-        $module_path = $module->getPath();
-        $module_name = $module->getName();
-
-        $module_directory = sprintf($_directory_format, $module_path);
-        $module_namespace = sprintf($_namespace_format, $_module_namespace, $module_name);
-
-        $_widgets_format = '%s/'.Str::replaceFirst('/', '', config('filament-modular.widgets.path'));
-        $_resources_format = '%s/'.Str::replaceFirst('/', '', config('filament-modular.resources.path'));
-        $_pages_format = '%s/'.Str::replaceFirst('/', '', config('filament-modular.pages.path'));
-
-        $widgets_path = sprintf($_widgets_format, $module_directory);
-        $resources_path = sprintf($_resources_format, $module_directory);
-        $pages_path = sprintf($_pages_format, $module_directory);
-
-        // Return if module directory not exists
-        if (!$filesystem->isDirectory($module_directory)) {
-            return;
+    /**
+     * Check if a class is valid for registration.
+     */
+    protected function isValidClass(string $fileClass): bool
+    {
+        try {
+            $reflection = new ReflectionClass($fileClass);
+            return $reflection->isInstantiable() && !$reflection->isAbstract();
+        } catch (ReflectionException) {
+            return false;
         }
+    }
 
-        // Loop on directory files
-        foreach ($filesystem->allFiles($module_directory) as $file) {
-            // Generate file class
-            $fileClass = Str::of($module_namespace)
-                            ->append('\\', $file->getRelativePathname())
-                            ->replace(['/', '.php'], ['\\', ''])
-                            ->toString();
+    /**
+     * Register a component based on its type.
+     */
+    protected function registerComponent(string $fileClass, string $filePath, string $moduleDirectory): void
+    {
+        $filePath = Str::of($filePath);
 
-            // Continue in case of "abstract class" or when class "is not exists"
-            if (!class_exists($fileClass) || (new \ReflectionClass($fileClass))->isAbstract()) {
-                continue;
-            }
+        match (true) {
+            $this->isResource($fileClass, $filePath, $moduleDirectory) => $this->resources[] = $fileClass,
+            $this->isPage($fileClass, $filePath, $moduleDirectory) => $this->pages[] = $fileClass,
+            $this->isWidget($fileClass, $filePath, $moduleDirectory) => $this->widgets[] = $fileClass,
+            $this->isLivewireComponent($fileClass) => $this->registerLivewireComponent($fileClass, $moduleDirectory),
+            default => null,
+        };
+    }
 
-            // Get the file path
-            $filePath = Str::of($module_directory.'/'.$file->getRelativePathname());
+    /**
+     * Check if class is a Filament Resource.
+     */
+    protected function isResource(string $fileClass, Stringable $filePath, string $moduleDirectory): bool
+    {
+        return $filePath->startsWith(sprintf($this->pathFormats['resources'], $moduleDirectory))
+            && is_subclass_of($fileClass, Resource::class);
+    }
 
-            // Check for Resource instance
-            if ($filePath->startsWith($resources_path) && is_subclass_of($fileClass, Resource::class)) {
-                $this->resources[] = $fileClass;
-                continue;
-            }
+    /**
+     * Check if class is a Filament Page.
+     */
+    protected function isPage(string $fileClass, Stringable $filePath, string $moduleDirectory): bool
+    {
+        return $filePath->startsWith(sprintf($this->pathFormats['pages'], $moduleDirectory))
+            && is_subclass_of($fileClass, Page::class);
+    }
 
-            // Check for Page instance
-            if ($filePath->startsWith($pages_path) && is_subclass_of($fileClass, Page::class)) {
-                $this->pages[] = $fileClass;
-                continue;
-            }
+    /**
+     * Check if class is a Filament Widget.
+     */
+    protected function isWidget(string $fileClass, Stringable $filePath, string $moduleDirectory): bool
+    {
+        return $filePath->startsWith(sprintf($this->pathFormats['widgets'], $moduleDirectory))
+            && is_subclass_of($fileClass, Widget::class);
+    }
 
-            // Check for Widget instance
-            if ($filePath->startsWith($widgets_path) && is_subclass_of($fileClass, Widget::class)) {
-                $this->widgets[] = $fileClass;
-                continue;
-            }
+    /**
+     * Check if class is a Livewire Component (excluding RelationManager).
+     */
+    protected function isLivewireComponent(string $fileClass): bool
+    {
+        return is_subclass_of($fileClass, Component::class)
+            && !is_subclass_of($fileClass, RelationManager::class);
+    }
 
-            // Continue on RelationManger subclasses
-            if (is_subclass_of($fileClass, RelationManager::class)) {
-                continue;
-            }
+    /**
+     * Register a Livewire component with its alias.
+     */
+    protected function registerLivewireComponent(string $fileClass, string $moduleDirectory): void
+    {
+        $alias = Str::of($fileClass)
+            ->after($moduleDirectory.'\\')
+            ->replace(['/', '\\'], '.')
+            ->prepend('filament.')
+            ->explode('.')
+            ->map(fn ($part) => Str::kebab($part))
+            ->implode('.');
 
-            // Continue if it's not a Livewire Component
-            if (!is_subclass_of($fileClass, Component::class)) {
-                continue;
-            }
-
-            // Generate the Alias
-            $_livewire_alias = Str::of($fileClass)
-                                  ->after($module_namespace.'\\')
-                                  ->replace(['/', '\\'], '.')
-                                  ->prepend('filament.')
-                                  ->explode('.')
-                                  ->map([Str::class, 'kebab'])
-                                  ->implode('.');
-
-            // Register livewire component via its alias
-            $this->livewireComponents[$_livewire_alias] = $fileClass;
-        }
+        $this->livewireComponents[$alias] = $fileClass;
     }
 }
