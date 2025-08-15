@@ -2,6 +2,14 @@
 
 ## Filament Modular <a name="realmrhex-modular"></a>
 
+## ⚠️ This Version is EOL. use V3 or V4 ⚠️
+
+V3-Compatible: https://github.com/RealMrHex/filament-modular-v3
+
+V4-Compatible: https://github.com/panicdevs/modulite
+
+---
+
 ### Introduction <a name="introduction"></a>
 
 Filament Modular is a Laravel package that enables the use of FilamentPHP in the nwidart/laravel-modules Modular structure.
